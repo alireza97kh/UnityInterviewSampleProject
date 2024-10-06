@@ -10,7 +10,8 @@ public class ChracterController : MonoBehaviour
 
 	void Start()
 	{
-		agent = GetComponent<NavMeshAgent>();
+		if (agent == null)
+			agent = GetComponent<NavMeshAgent>();
 		agent.updateRotation = false;
 	}
 
