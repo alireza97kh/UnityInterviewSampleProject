@@ -36,10 +36,21 @@ public class EnemyController : MonoBehaviour
 	private int characterLayerForRayCast;
 	private float timer = 9;
 
+	[Header("Material Variables")]
+	[SerializeField] private Renderer enemyRenderer;
+
+	[SerializeField] private Color defaultColor;
+	[SerializeField] private Color feelCharacterColor;
+	[SerializeField] private Color seeCharacterColor;
+
+
 	private void Start()
 	{
 		if (agent == null)
 			agent = GetComponent<NavMeshAgent>();
+		if (enemyRenderer == null)
+			enemyRenderer = GetComponent<Renderer>();
+		enemyRenderer.material.color = defaultColor;
 		agent.Warp(startWaypoint.GetPosition());
 		currentWaypoint = startWaypoint;
 		currentState = AiState.Idle;
@@ -159,7 +170,7 @@ public class EnemyController : MonoBehaviour
 	private void DoMove()
 	{
 		agent.SetDestination(currentWaypoint.GetPosition());
-
+		enemyRenderer.material.color = defaultColor;
 		if (Vector3.Distance(currentWaypoint.GetPosition(), transform.position) <= agent.stoppingDistance)
 		{
 			if (currentWaypoint.nextWaypoint != null)
@@ -239,12 +250,16 @@ public class EnemyController : MonoBehaviour
 	private void MoveToCharacter()
 	{
 		if (mainCharacter != null)
+		{
+			enemyRenderer.material.color = seeCharacterColor;
 			agent.SetDestination(mainCharacter.transform.position);
+		}
 	}
 
 	private void SearchForCharacter()
 	{
 		agent.SetDestination(transform.position);
+		enemyRenderer.material.color = feelCharacterColor;
 		RotateTowardsCharacter();
 
 	}
