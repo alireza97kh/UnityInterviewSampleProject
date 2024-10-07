@@ -474,7 +474,7 @@ MonoBehaviour:
   sleepAfterSearchingForCharacter: 2
   enemyRenderer: {fileID: 1799302812}
   defaultColor: {r: 0, g: 1, b: 0.8503766, a: 1}
-  feelCharacterColor: {r: 1, g: 0.3440335, b: 0, a: 1}
+  feelCharacterColor: {r: 1, g: 1, b: 0, a: 1}
   seeCharacterColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!1 &147844303
 GameObject:

@@ -258,7 +258,7 @@ public class EnemyController : MonoBehaviour
 
 	private void SearchForCharacter()
 	{
-		agent.SetDestination(transform.position);
+		agent.SetDestination(characterFeelPosition);
 		enemyRenderer.material.color = feelCharacterColor;
 		RotateTowardsCharacter();
 
