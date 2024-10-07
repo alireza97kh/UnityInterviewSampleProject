@@ -38,3 +38,41 @@ The **UnityInterviewSampleProject** is a sample project that contains NPCs, a ch
    - The project currently uses a Virtual Camera.
    - In the CinemachineVirtualCamera, you can modify the main camera's body, aim, and other settings.
    - For more information, refer to the Cinemachine Documentation.
+
+
+## Code Documentation
+
+### 1. Character
+- The `Character` class controls the main character's movement based on user inputs.
+- When the `CharacterPassedCheckPointsWithoutBeingSeen` event is triggered by the `CheckPointManager`, the character's score increases by the value provided in the event.
+
+### 2. EnemyController
+- The `EnemyController` class manages NPCs in the game.
+- It uses two `Transform` variables—one for the left eye and one for the right eye of the NPC—to cast rays and determine if the NPC can see the character.
+- The class defines NPC actions and maintains a list of action scores (modifiable in the inspector).
+- When adding new actions, ensure you set the validation function in `IsActionValid` to check if the action is possible during the current frame.
+- Additionally, when adding new states, create corresponding functions that execute when the NPC is in that state.
+- If the NPC senses the character, it searches for the character for a specified duration (`searchForCharacterDuration`). If unsuccessful, the NPC enters a sleep state, during which it ignores the character for a defined period (`sleepAfterSearchingForCharacter`).
+
+### 3. CheckPoint
+- The `CheckPoint` class manages individual checkpoints.
+- Each checkpoint can have one of two states:
+  - `StartOfPath`
+  - `EndOfPath`
+- When the character passes a checkpoint (if not previously passed), the checkpoint sends its state via the `CharacterPassedCheckPoint` event to its manager.
+- The manager can reset the passed state of checkpoints using the `ResetCheckPoint` function.
+
+### 4. CheckPointManager
+- The `CheckPointManager` class handles events from checkpoints and NPCs:
+  - `CharacterPassedCheckPoint`: Triggered when the character passes any checkpoint not previously passed.
+  - `EnemySeeCharacter`: Sent by NPCs when they see the character.
+- When a checkpoint with the `StartOfPath` state is passed, the `characterHitStartPoint` variable is set to true.
+- If the character passes the start point and is not seen by an NPC, the manager increases the character's score. Otherwise, no action is taken. After checking, the manager resets relevant variables to allow the character to pass checkpoints again.
+
+### 5. EventManager
+- The `EventManager` class facilitates communication between classes without direct dependencies.
+- It provides three main functions:
+  - `RegisterGlobalEvent`: Registers an event with a UnityAction for future use.
+  - `RemoveGlobalEvent`: Removes an action from the dictionary.
+  - `SendGlobalEvent`: Calls all registered functions associated with a specific event name.
+
