@@ -7,19 +7,35 @@ using UnityEngine.AI;
 public class EnemyController : MonoBehaviour
 {
 	public Waypoint startWaypoint;
-	public Vector3 boxSize = new Vector3(2f, 2f, 2f);
+	public LayerMask characterLayerMask;
+
 	[SerializeField] private NavMeshAgent agent;
 	[SerializeField] private Transform leftEye;
 	[SerializeField] private Transform rightEye;
 	[SerializeField] public List<AiStateActionScore> actionScores = new List<AiStateActionScore>();
 	[SerializeField] private float detectionRangeToSee = 20;
 	[SerializeField] private float detectionRangeToFeel = 20;
+	//Search Variables
+	[SerializeField] private float searchForCharacterRotationSpeed = 10;
+	[SerializeField] private float searchForCharacterDuration = 3;
+	/// <summary>
+	/// This variable is for when we search for character but can't find it
+	/// </summary>
+	[SerializeField] private float sleepAfterSearchingForCharacter = 2;
+	private bool inSleepState = false;
+	private Coroutine resetSleepCoroutine;
 
-	private AiState currentState;
+
 	private Waypoint currentWaypoint;
+	private AiState currentState;
 
 	private Transform mainCharacter;
-	private LayerMask characterLayerMask;
+
+	private Vector3 characterFeelPosition;
+
+	private int characterLayerForRayCast;
+	private float timer = 9;
+
 	private void Start()
 	{
 		if (agent == null)
@@ -27,10 +43,10 @@ public class EnemyController : MonoBehaviour
 		agent.Warp(startWaypoint.GetPosition());
 		currentWaypoint = startWaypoint;
 		currentState = AiState.Idle;
-		characterLayerMask = LayerMask.NameToLayer("Character");
+		characterLayerForRayCast = LayerMask.NameToLayer("Character");
+
 		StartCoroutine(DecisionMaking());
 	}
-	AiAction lastAction;//Todo Remove this
 	private IEnumerator DecisionMaking()
 	{
 		while (true)
@@ -48,34 +64,62 @@ public class EnemyController : MonoBehaviour
 					}
 				}
 			}
-			if (lastAction != bestAction)
-			{
-				Debug.LogError(bestAction);
-				lastAction = bestAction;
-			}
-			Debug.LogError(bestAction);
 			switch (bestAction)
 			{
 				case AiAction.DoNothing:
 					currentState = AiState.Idle;
 					break;
+
 				case AiAction.CanSeeCharacter:
+
 					currentState = AiState.ChasingCharacter;
 					break;
+
 				case AiAction.CharacterIsInSight:
 					currentState = AiState.ChasingCharacter;
 					break;
+
+				case AiAction.CanFeelCharacter:
+					currentState = AiState.SearchForCharacter;
+					break;
+
 				default:
 					break;
 			}
-
 			ExecuteCurrentState();
+			SetTimer();
+
+
 			yield return null;
 		}
 	}
 
+	private void SetTimer()
+	{
+		if (currentState == AiState.SearchForCharacter)
+		{
+			timer += Time.deltaTime;
+			if (!inSleepState && timer > searchForCharacterDuration)
+			{
+				inSleepState = true;
+				if (resetSleepCoroutine != null)
+					StopCoroutine(resetSleepCoroutine);
+				resetSleepCoroutine = StartCoroutine(ResetSleepState());
+			}
+
+		}
+		else if (timer > 0)
+			timer = 0;
+	}
+	private IEnumerator ResetSleepState()
+	{
+		yield return new WaitForSeconds(sleepAfterSearchingForCharacter);
+		inSleepState = false;
+	}
 	private void ExecuteCurrentState()
 	{
+		agent.updateRotation = currentState != AiState.SearchForCharacter;
+
 		switch (currentState)
 		{
 			case AiState.Idle:
@@ -83,6 +127,10 @@ public class EnemyController : MonoBehaviour
 				break;
 			case AiState.ChasingCharacter:
 				MoveToCharacter();
+				break;
+
+			case AiState.SearchForCharacter:
+				SearchForCharacter();
 				break;
 		}
 	}
@@ -94,11 +142,15 @@ public class EnemyController : MonoBehaviour
 			case AiAction.DoNothing:
 				return true;
 			case AiAction.CanSeeCharacter:
-				return CanSeeCharacter();
+				bool canSeeCharacter = CanSeeCharacter();
+				mainCharacter = (canSeeCharacter) ? mainCharacter : null;
+				return canSeeCharacter;
 			case AiAction.CharacterIsInSight:
 				bool isInSight = CharacterIsInSight();
 				mainCharacter = (isInSight) ? mainCharacter : null;
 				return isInSight;
+			case AiAction.CanFeelCharacter:
+				return CanFeelCharacter();
 			default:
 				return false;
 		}
@@ -108,7 +160,7 @@ public class EnemyController : MonoBehaviour
 	{
 		agent.SetDestination(currentWaypoint.GetPosition());
 
-		if (agent.remainingDistance <= agent.stoppingDistance)
+		if (Vector3.Distance(currentWaypoint.GetPosition(), transform.position) <= agent.stoppingDistance)
 		{
 			if (currentWaypoint.nextWaypoint != null)
 				currentWaypoint = currentWaypoint.nextWaypoint;
@@ -122,20 +174,48 @@ public class EnemyController : MonoBehaviour
 	{
 		if (mainCharacter == null)
 		{
-			if (Physics.Raycast(leftEye.transform.position, leftEye.forward, out RaycastHit leftHit, detectionRangeToSee, characterLayerMask))
+			if (Physics.Raycast(leftEye.transform.position, leftEye.forward, out RaycastHit leftHit, detectionRangeToSee))
 			{
-				mainCharacter = leftHit.transform;
-				return true;
+				if (leftHit.transform.gameObject.layer == characterLayerForRayCast)
+					mainCharacter = leftHit.transform;
 			}
-			if (Physics.Raycast(rightEye.transform.position, rightEye.forward, out RaycastHit rightHit, detectionRangeToSee, characterLayerMask))
+
+
+
+			if (Physics.Raycast(rightEye.transform.position, rightEye.forward, out RaycastHit rightHit, detectionRangeToSee))
 			{
-				mainCharacter = rightHit.transform;
-				return true;
+				if (rightHit.transform.gameObject.layer == characterLayerForRayCast)
+					mainCharacter = rightHit.transform;
 			}
-			mainCharacter = null;
+			if (mainCharacter != null)
+				EventManager.Instance.SendGlobalEvent("EnemySeeCharacter", null);
+
+			return mainCharacter != null;
+		}
+		else
+		{
+			return Vector3.Distance(mainCharacter.transform.position, transform.position) <= detectionRangeToSee;
+		}
+	}
+
+	private bool CanFeelCharacter()
+	{
+		if (!inSleepState && timer < searchForCharacterDuration)
+		{
+			Collider[] nearColliders = Physics.OverlapSphere(transform.position, detectionRangeToFeel, characterLayerMask);
+			foreach (var item in nearColliders)
+			{
+				if (item.gameObject.layer == characterLayerForRayCast)
+				{
+					characterFeelPosition = item.transform.position;
+					return true;
+				}
+			}
+			characterFeelPosition = Vector3.zero;
 			return false;
 		}
-		else return true;
+		else
+			return false;
 	}
 
 	private bool CharacterIsInSight()
@@ -162,10 +242,22 @@ public class EnemyController : MonoBehaviour
 			agent.SetDestination(mainCharacter.transform.position);
 	}
 
-	private void OnDrawGizmos()
+	private void SearchForCharacter()
 	{
-		Gizmos.color = Color.yellow;
-		Gizmos.DrawRay(leftEye.transform.position, leftEye.forward);
-		Gizmos.DrawRay(rightEye.transform.position, rightEye.forward);
+		agent.SetDestination(transform.position);
+		RotateTowardsCharacter();
+
+	}
+
+	private void RotateTowardsCharacter()
+	{
+		Vector3 directionToCharacter = (characterFeelPosition - transform.position).normalized;
+
+		// Calculate the rotation to face the character
+		Quaternion targetRotation = Quaternion.LookRotation(directionToCharacter);
+
+		// Smoothly rotate towards the target rotation
+		transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, searchForCharacterRotationSpeed * Time.deltaTime);
+
 	}
 }
