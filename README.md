@@ -1,35 +1,40 @@
 # UnityInterviewSampleProject
 
-The **UnityInterviewSampleProject** this is a sample project that contains npc, character and Check point system
+The **UnityInterviewSampleProject** is a sample project that contains NPCs, a character, and a checkpoint system.
 
 ## Features
 
 1. **Character**:
-   - you can move character using WASD.
-   - character class contains movement speed, rotation speed and move character using Unity AI library called NavMesh Agent.
+   - Control the character using WASD.
+   - The `Character` class contains movement speed, rotation speed, and utilizes Unity's AI library called NavMesh Agent.
 
-2. **NPC**:
-   - Npc have 3 action: do nothing, can feel character, can see character and character is in sight.
-   - Every action causes a state and you can set State in npc Inspector. (For example when character is in sight npc chase the character and etc)
-   - Npc color change based on npc state. 
-   - For Npc movement in scene there is a WayPoint system that contains Next WayPoint and Previous WayPoint for Create a new WayPoint path that go to Tools -> WayPoint Editor and set WayPoint Root a Game object that you want to be root of your way point and Select Create Waypoint and adjust it in scene.
-   - Don't Forget after adjusting new WayPoint(if you did that!) attach it to Enemy Game Object in scene so the Npc moves in your created path.
-   
+2. **NPCs**:
+   - NPCs have three actions:
+     - **Do Nothing**: Idle state.
+     - **Can Feel Character**: NPC senses the character's presence.
+     - **Character Is in Sight**: NPC actively sees the character.
+   - Each action corresponds to a specific state, which you can set in the NPC Inspector.
+   - NPC color changes based on its state.
+   - For NPC movement in the scene, there is a WayPoint system:
+     - Create a new WayPoint path by going to `Tools -> WayPoint Editor`.
+     - Set the WayPoint Root as a GameObject (usually an empty GameObject) that will serve as the root of your waypoint hierarchy.
+     - Select "Create Waypoint" and adjust its position in the scene.
+     - Don't forget to attach the waypoints to the Enemy GameObject in the scene so that the NPC follows the created path.
 
-3. **CheckPointSystem**:
-   - there is 2 check point in scene (check point A, check point B).
-   - Check point A is start of path and when we passed that and if npc won't see us untill we reach to check point B, Character score increase and you can change reward in CheckPointManager Object in scene.
+3. **Checkpoint System**:
+   - There are two checkpoints in the scene: Checkpoint A and Checkpoint B.
+   - Checkpoint A marks the start of the path.
+   - If the character reaches Checkpoint B without being seen by an NPC, the character's score increases.
+   - You can customize the reward in the CheckPointManager object in the scene.
 
 ## Notes
 
-1. **If you added new obstacle or Object to scene or move around created obstacle**:
-   - Go to Map Game object in scene.
-   - In inspector in NavMeshSurface component Select Bake.
-   - if you didn't Bake new Map Character and Npc can't find that obstacle or new adjustment that you've jsut set.
+1. **Adding New Obstacles or Objects to the Scene**:
+   - Go to the Map GameObject in the scene.
+   - In the Inspector, find the NavMeshSurface component and select "Bake."
+   - If you've made adjustments or added new obstacles, baking the NavMesh ensures that both the character and NPCs can navigate around them.
 
-2. **If you want to Change Camera Controller**:
-    - Virtual Camera.
-    - in CinemachineVirtualCamera you can change main camera Body or Aim or etc.
-    - for more information check [Cinemachine Documentation](https://docs.unity3d.com/Packages/com.unity.cinemachine@2.3/manual/index.html)
-
-3. 
+2. **Changing the Camera Controller**:
+   - The project currently uses a Virtual Camera.
+   - In the CinemachineVirtualCamera, you can modify the main camera's body, aim, and other settings.
+   - For more information, refer to the Cinemachine Documentation.
