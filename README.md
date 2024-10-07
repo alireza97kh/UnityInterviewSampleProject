@@ -37,7 +37,7 @@ The **UnityInterviewSampleProject** is a sample project that contains NPCs, a ch
 2. **Changing the Camera Controller**:
    - The project currently uses a Virtual Camera.
    - In the CinemachineVirtualCamera, you can modify the main camera's body, aim, and other settings.
-   - For more information, refer to the Cinemachine Documentation.
+   - For more information, refer to the [Cinemachine Documentation](https://docs.unity3d.com/Packages/com.unity.cinemachine@2.3/manual/index.html).
 
 
 ## Code Documentation
