@@ -12,6 +12,7 @@ The **UnityInterviewSampleProject** is a sample project that contains NPCs, a ch
    - NPCs have three actions:
      - **Do Nothing**: Idle state.
      - **Can Feel Character**: NPC senses the character's presence.
+     - - **Can See Character**: NPC see the character.
      - **Character Is in Sight**: NPC actively sees the character.
    - Each action corresponds to a specific state, which you can set in the NPC Inspector.
    - NPC color changes based on its state.
